@@ -1,6 +1,7 @@
-'From Cuis 5.0 of 7 November 2016 [latest update: #3035] on 17 January 2017 at 7:39:59 pm'!
+'From Cuis 5.0 of 7 November 2016 [latest update: #3035] on 19 January 2017 at 8:39:53 pm'!
 'Description Please enter a description for this package'!
-!provides: 'RayTracer Examples' 1 0!
+!provides: 'RayTracer Examples' 1 1!
+!requires: 'RayTracer' 1 0 nil!
 !classDefinition: #Plane category: #'RayTracer Examples'!
 RayTraceObject subclass: #Plane
 	instanceVariableNames: 'normal offset'
@@ -124,9 +125,9 @@ location
 location: aVector
 	location _ aVector! !
 
-!Sphere methodsFor: 'tracing'!
+!Sphere methodsFor: 'tracing' stamp: 'len 1/18/2017 21:35:20'!
 normalAt: aPoint
-	^(aPoint - self location) unitVector! !
+	^self location unitVectorTowards: aPoint! !
 
 !Sphere methodsFor: 'accessing'!
 radius
@@ -319,6 +320,59 @@ example2
 										finish: (PhongLightingModelFinish new
 													ambient: 0.2;
 													specular: 0;
+													specularPower: 20)));
+				addObject: (Sphere new
+							location: 3 @ 1 @ 0;
+							radius: 1.5;
+							texture: (TextureWithFinish new
+										pigment: (FlatColorPigment new color: Color red);
+										finish: (PhongLightingModelFinish new
+													ambient: 0.2;
+													specular: 0.8;
+													specularPower: 20)));
+				yourself.
+	image _ camera renderScene: scene.
+	ImageMorph new image: image; openInWorld! !
+
+!RayTraceExamples class methodsFor: 'examples' stamp: 'len 1/19/2017 07:49:43'!
+example3
+	| image camera scene |
+	camera _ Camera new
+				location: 0 @ 2 @ -10;
+				direction: 0 @ 0 @ 1;
+				up: 0 @ 1 @ 0;
+				right: 1.333 @ 0 @ 0;
+				imageSize: 640 @ 480.
+	scene _ Scene new
+				addLightSource: (LightSource new
+							location: 10 @ 5 @ -20;
+							color: Color white);
+				addObject: (Plane new
+							normal: 0 @ 1 @ 0;
+							offset: 1;
+							texture: (TextureWithFinish new
+										pigment: (CheckerBoardPigment new
+													center: 0 @ 0.1 @ 0;
+													color1: Color green;
+													color2: Color white;
+													squareSize: 1);
+										finish: (CompoundFinish new
+													addFinish: (PhongLightingModelFinish new
+																ambient: 0.2;
+																specular: 0;
+																specularPower: 20);
+													addFinish: (ReflectionFinish new reflection: 1))));
+				addObject: (Sphere new
+							location: 0 @ 1 @ 0;
+							texture: (TextureWithFinish new
+										pigment: (WoodPigment new
+													color1: Color lightBrown darker;
+													color2: (Color lightBrown darker as: Float32Color3) * 1.5;
+													center: 0 @ 1 @ 0;
+													ringDistance: 0.1);
+										finish: (PhongLightingModelFinish new
+													ambient: 0.2;
+													specular: 0.8;
 													specularPower: 20)));
 				addObject: (Sphere new
 							location: 3 @ 1 @ 0;

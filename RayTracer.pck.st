@@ -1,6 +1,6 @@
-'From Cuis 5.0 of 7 November 2016 [latest update: #3035] on 17 January 2017 at 7:39:56 pm'!
+'From Cuis 5.0 of 7 November 2016 [latest update: #3035] on 19 January 2017 at 8:39:50 pm'!
 'Description Please enter a description for this package'!
-!provides: 'RayTracer' 1 0!
+!provides: 'RayTracer' 1 1!
 !requires: 'Math 3D' 1 21 nil!
 !classDefinition: #Camera category: #RayTracer!
 Object subclass: #Camera
@@ -34,7 +34,7 @@ FlatColorPigment class
 
 !classDefinition: #Intersection category: #RayTracer!
 Object subclass: #Intersection
-	instanceVariableNames: 'object ray distance intersectionPoint scene'
+	instanceVariableNames: 'object ray distance intersectionPoint normal scene'
 	classVariableNames: ''
 	poolDictionaries: ''
 	category: 'RayTracer'!
@@ -135,43 +135,43 @@ y
 z
 	^ Float32Vector3 x: 0 y: 0 z: self! !
 
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/17/2017 17:59:20'!
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:38:12'!
 halfwayVectorTo: aVector 
-	^(self + aVector) / 2.0! !
+	^(self + aVector) /= 2.0! !
 
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/17/2017 17:59:27'!
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:37:28'!
 reflectRay: aVector 
-	^self * (self dot: aVector) negated * 2.0 - aVector! !
+	^self * ((self dot: aVector) * -2.0) -= aVector! !
 
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/17/2017 17:59:05'!
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:32:27'!
 unitVector
-	^self / self length! !
+	^self copy normalize! !
 
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/17/2017 17:59:32'!
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:30:13'!
 unitVectorTowards: aVector 
-	^(aVector - self) unitVector! !
+	^(aVector - self) normalize! !
 
 !Point methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:01:56'!
 @ aNumber
 	^Float32Vector3 x: x y: y z: aNumber! !
 
-!Camera methodsFor: 'rendering'!
+!Camera methodsFor: 'rendering' stamp: 'len 1/18/2017 21:22:53'!
 allPixelsDo: aBlock
-	1 to: self image extent y
+	0 to: self image extent y - 1
 		do: 
 			[:y | 
-			1 to: self image extent x
+			0 to: self image extent x - 1
 				do: 
 					[:x | 
 					aBlock value: x value: y]].
 	^self image! !
 
-!Camera methodsFor: 'rendering' stamp: 'len 1/17/2017 17:38:51'!
+!Camera methodsFor: 'rendering' stamp: 'len 1/18/2017 21:26:18'!
 createRayForPixel: aPoint
 	| rayDirection scaledX scaledY |
 	scaledX _ aPoint x asFloat / image width - 0.5.
-	scaledY _ (image height - aPoint y - 1.0) / image height - 0.5.
-	rayDirection _ self direction + (self up * scaledY) + (self right * scaledX).
+	scaledY _ (image height - aPoint y) / image height - 0.5.
+	rayDirection _ self direction + (self up * scaledY) += (self right * scaledX).
 	^Ray new
 		origin: self location;
 		direction: rayDirection.! !
@@ -192,10 +192,10 @@ image
 image: anObject
 	image _ anObject! !
 
-!Camera methodsFor: 'dialect-specific' stamp: 'len 1/17/2017 18:53:19'!
+!Camera methodsFor: 'dialect-specific' stamp: 'len 1/18/2017 21:23:12'!
 imageAt: aPoint putColor: color
 	imagePoker
-		pixelAt: aPoint - (1 @ 1)
+		pixelAt: aPoint
 		put: (color pixelValueForDepth: image depth)! !
 
 !Camera methodsFor: 'dialect-specific' stamp: 'avi 10/12/2003 00:44'!
@@ -224,14 +224,15 @@ location
 location: aVector
 	location _ aVector! !
 
-!Camera methodsFor: 'initializing'!
+!Camera methodsFor: 'initializing' stamp: 'len 1/18/2017 21:23:42'!
 renderScene: aScene 
 	self allPixelsDo: 
-			[:x :y | 
-			| ray color |
-			ray _ self createRayForPixel: x @ y.
+			[:x :y |
+			| point ray color |
+			point _ x @ y.
+			ray _ self createRayForPixel: point.
 			color _ aScene trace: ray.
-			self imageAt: x @ y putColor: color].
+			self imageAt: point putColor: color].
 	^self image! !
 
 !Camera methodsFor: 'accessing'!
@@ -258,12 +259,11 @@ new
 addFinish: aFinish
 	finishes add: aFinish! !
 
-!CompoundFinish methodsFor: 'rendering' stamp: 'len 1/17/2017 18:28:48'!
+!CompoundFinish methodsFor: 'rendering' stamp: 'len 1/18/2017 21:43:53'!
 colorAt: anIntersection
 	| color |
 	color _ Float32Color3 new.
-	finishes do: [:each |
-		color _ color + (each colorAt: anIntersection)].
+	finishes do: [:each| color += (each colorAt: anIntersection)].
 	^color! !
 
 !CompoundFinish methodsFor: 'initializing'!
@@ -291,9 +291,9 @@ colorInScene: aScene
 	scene _ aScene.
 	^self object colorAt: self! !
 
-!Intersection methodsFor: 'rendering'!
+!Intersection methodsFor: 'rendering' stamp: 'len 1/18/2017 21:27:19'!
 colorOfReflectedRay
-	^self scene trace: ((Ray new)
+	^self scene trace: (Ray new
 				origin: self intersectionPoint;
 				direction: self reflectedDirection)! !
 
@@ -314,9 +314,9 @@ intersectionPoint
 	intersectionPoint isNil ifFalse: [^intersectionPoint].
 	^intersectionPoint _ ray pointAtDistance: distance! !
 
-!Intersection methodsFor: 'rendering'!
+!Intersection methodsFor: 'rendering' stamp: 'len 1/18/2017 21:41:11'!
 normal
-	^self object normalAt: self intersectionPoint! !
+	^normal ifNil: [normal _ self object normalAt: self intersectionPoint]! !
 
 !Intersection methodsFor: 'rendering'!
 normalComponentForLightSource: lightSource 
@@ -381,14 +381,14 @@ initialize
 		color: Float32Color3 white;
 		location: 0@10@-10! !
 
-!LightSource methodsFor: 'rendering'!
+!LightSource methodsFor: 'rendering' stamp: 'len 1/18/2017 21:34:21'!
 isIntersectionVisible: anIntersection 
 	| lightSourceVector lightSourceDistance ray |
 	lightSourceVector _ self location - anIntersection intersectionPoint.
 	lightSourceDistance _ lightSourceVector length.
 	ray _ (Ray new)
 				origin: anIntersection intersectionPoint;
-				direction: lightSourceVector unitVector.
+				direction: lightSourceVector /= lightSourceDistance.
 	anIntersection scene intersectionsWith: ray
 		do: [:intersection | intersection distance < lightSourceDistance ifTrue: [^false]].
 	^true! !
@@ -417,7 +417,7 @@ ambient: anObject
 ambientColorAt: anIntersection 
 	^anIntersection pigmentColor * self ambient! !
 
-!PhongLightingModelFinish methodsFor: 'initializing' stamp: 'len 1/17/2017 17:39:49'!
+!PhongLightingModelFinish methodsFor: 'initializing' stamp: 'len 1/19/2017 20:38:12'!
 colorAt: anIntersection
 	| color dot |
 	color _ self ambientColorAt: anIntersection.
@@ -430,7 +430,7 @@ colorAt: anIntersection
 						ifTrue: 
 							[color _ color 
 										+ (self diffuseColorAt: anIntersection fromLightSource: lightSource) 
-											+ (self specularColorAt: anIntersection lightSource: lightSource)]]].
+										+= (self specularColorAt: anIntersection lightSource: lightSource)]]].
 	^color! !
 
 !PhongLightingModelFinish methodsFor: 'accessing'!
@@ -441,11 +441,11 @@ diffuse
 diffuse: anObject
 	diffuse _ anObject asFloat! !
 
-!PhongLightingModelFinish methodsFor: 'rendering'!
+!PhongLightingModelFinish methodsFor: 'rendering' stamp: 'len 1/18/2017 21:16:15'!
 diffuseColorAt: anIntersection fromLightSource: lightSource
 	| dot |
 	dot _ anIntersection normalComponentForLightSource: lightSource.
-	^anIntersection pigmentColor * lightSource color * (dot * self diffuse)! !
+	^anIntersection pigmentColor * lightSource color *= (dot * self diffuse)! !
 
 !PhongLightingModelFinish methodsFor: 'initializing' stamp: 'len 1/17/2017 17:39:59'!
 initialize
@@ -501,10 +501,9 @@ direction
 direction: anObject
 	direction _ anObject! !
 
-!Ray methodsFor: 'tracing'!
+!Ray methodsFor: 'tracing' stamp: 'len 1/18/2017 21:18:06'!
 directionLengthSquared
-	directionLengthSquared isNil ifFalse: [^directionLengthSquared].
-	^directionLengthSquared _ direction dot: direction! !
+	^directionLengthSquared ifNil: [directionLengthSquared _ direction dot: direction]! !
 
 !Ray methodsFor: 'accessing'!
 origin
@@ -514,9 +513,9 @@ origin
 origin: anObject
 	origin _ anObject! !
 
-!Ray methodsFor: 'accessing'!
+!Ray methodsFor: 'accessing' stamp: 'len 1/18/2017 21:19:09'!
 pointAtDistance: d 
-	^self origin + (self direction * d)! !
+	^self direction * d += self origin! !
 
 !RayTraceObject methodsFor: 'tracing'!
 colorAt: anIntersection
