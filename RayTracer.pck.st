@@ -1,6 +1,6 @@
-'From Cuis 5.0 of 7 November 2016 [latest update: #3035] on 19 January 2017 at 8:39:50 pm'!
+'From Cuis 5.0 of 7 November 2016 [latest update: #2974] on 22 January 2017 at 10:13:17 am'!
 'Description Please enter a description for this package'!
-!provides: 'RayTracer' 1 1!
+!provides: 'RayTracer' 1 2!
 !requires: 'Math 3D' 1 21 nil!
 !classDefinition: #Camera category: #RayTracer!
 Object subclass: #Camera
@@ -204,8 +204,9 @@ imageOfSize: aPoint
 		extent: aPoint
 		depth: 32! !
 
-!Camera methodsFor: 'dialect-specific' stamp: 'len 1/17/2017 18:10:14'!
+!Camera methodsFor: 'dialect-specific' stamp: 'len 1/20/2017 21:56:25'!
 imageSize: aPoint
+	(image notNil and: [image extent = aPoint]) ifTrue: [^ self].
 	image _ self imageOfSize: aPoint.
 	imagePoker _ BitBlt bitPokerToForm: image.! !
 
@@ -251,10 +252,6 @@ up
 up: aVector
 	up _ aVector! !
 
-!Camera class methodsFor: 'instance creation'!
-new
-	^super new initialize! !
-
 !CompoundFinish methodsFor: 'adding'!
 addFinish: aFinish
 	finishes add: aFinish! !
@@ -269,10 +266,6 @@ colorAt: anIntersection
 !CompoundFinish methodsFor: 'initializing'!
 initialize
 	finishes _ OrderedCollection new! !
-
-!CompoundFinish class methodsFor: 'instance creation'!
-new
-	^super new initialize! !
 
 !FlatColorPigment methodsFor: 'accessing'!
 color
@@ -309,23 +302,22 @@ distance: aNumber
 eyeRayDirection
 	^self ray direction! !
 
-!Intersection methodsFor: 'accessing'!
+!Intersection methodsFor: 'accessing' stamp: 'len 1/21/2017 19:56:07'!
 intersectionPoint
-	intersectionPoint isNil ifFalse: [^intersectionPoint].
-	^intersectionPoint _ ray pointAtDistance: distance! !
+	^intersectionPoint ifNil: [intersectionPoint _ ray pointAtDistance: distance]! !
 
-!Intersection methodsFor: 'rendering' stamp: 'len 1/18/2017 21:41:11'!
+!Intersection methodsFor: 'rendering' stamp: 'len 1/21/2017 19:44:17'!
 normal
-	^normal ifNil: [normal _ self object normalAt: self intersectionPoint]! !
+	normal ifNotNil: [^ normal].
+	normal _ self object normalAt: self intersectionPoint.
+	(normal dot: self eyeRayDirection) positive ifTrue: [normal _ normal negated].
+	^ normal! !
 
-!Intersection methodsFor: 'rendering'!
+!Intersection methodsFor: 'rendering' stamp: 'len 1/21/2017 19:39:46'!
 normalComponentForLightSource: lightSource 
-	| normal lightSourceVector dot |
-	lightSourceVector _ self intersectionPoint 
-				unitVectorTowards: lightSource location.
-	normal _ self normal.
-	dot _ normal dot: lightSourceVector.
-	^dot! !
+	| lightSourceVector |
+	lightSourceVector _ self intersectionPoint unitVectorTowards: lightSource location.
+	^ self normal dot: lightSourceVector! !
 
 !Intersection methodsFor: 'accessing'!
 object
@@ -400,10 +392,6 @@ location
 !LightSource methodsFor: 'accessing'!
 location: aVector
 	location _ aVector! !
-
-!LightSource class methodsFor: 'instance creation'!
-new
-	^super new initialize! !
 
 !PhongLightingModelFinish methodsFor: 'accessing'!
 ambient
@@ -489,10 +477,6 @@ specularPower
 specularPower: anObject
 	specularPower _ anObject asFloat! !
 
-!PhongLightingModelFinish class methodsFor: 'instance creation'!
-new
-	^super new initialize! !
-
 !Ray methodsFor: 'accessing'!
 direction
 	^direction! !
@@ -513,9 +497,9 @@ origin
 origin: anObject
 	origin _ anObject! !
 
-!Ray methodsFor: 'accessing' stamp: 'len 1/18/2017 21:19:09'!
+!Ray methodsFor: 'accessing' stamp: 'len 1/22/2017 09:37:30'!
 pointAtDistance: d 
-	^self direction * d += self origin! !
+	^self direction * d + self origin! !
 
 !RayTraceObject methodsFor: 'tracing'!
 colorAt: anIntersection
@@ -541,10 +525,6 @@ texture: aRayTraceTexture
 !RayTraceObject methodsFor: 'tracing'!
 writeIntersectionsWith: aRay into: aCollection
 	^self! !
-
-!RayTraceObject class methodsFor: 'instance creation'!
-new
-	^super new initialize! !
 
 !ReflectionFinish methodsFor: 'rendering'!
 colorAt: anIntersection 
@@ -618,10 +598,6 @@ trace: aRay
 	intersection isNil ifTrue: [^Float32Color3 black].
 	^intersection colorInScene: self! !
 
-!Scene class methodsFor: 'instance creation'!
-new	
-	^super new initialize! !
-
 !Texture methodsFor: 'rendering' stamp: 'len 1/17/2017 18:28:13'!
 colorAt: anIntersection
 	^Float32Color3 white! !
@@ -651,7 +627,3 @@ pigment
 !TextureWithFinish methodsFor: 'accessing'!
 pigment: anObject
 	pigment _ anObject! !
-
-!TextureWithFinish class methodsFor: 'instance creation'!
-new
-	^super new initialize! !
