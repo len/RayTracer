@@ -1,7 +1,10 @@
-'From Cuis 5.0 of 7 November 2016 [latest update: #3035] on 19 January 2017 at 8:39:53 pm'!
+'From Cuis 5.0 of 7 November 2016 [latest update: #3741] on 13 May 2019 at 1:12:43 am'!
 'Description Please enter a description for this package'!
-!provides: 'RayTracer Examples' 1 1!
+!provides: 'RayTracer Examples' 1 2!
 !requires: 'RayTracer' 1 0 nil!
+SystemOrganization addCategory: #'RayTracer Examples'!
+
+
 !classDefinition: #Plane category: #'RayTracer Examples'!
 RayTraceObject subclass: #Plane
 	instanceVariableNames: 'normal offset'
@@ -59,26 +62,6 @@ initialize
 		normal: 0@1@0;
 		offset: 0.0! !
 
-!Plane methodsFor: 'accessing'!
-normal
-	^normal! !
-
-!Plane methodsFor: 'accessing'!
-normal: aVector
-	normal _ aVector! !
-
-!Plane methodsFor: 'tracing'!
-normalAt: aPoint
-	^normal! !
-
-!Plane methodsFor: 'accessing'!
-offset
-	^offset! !
-
-!Plane methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:10'!
-offset: aNumber
-	offset _ aNumber asFloat! !
-
 !Plane methodsFor: 'initializing' stamp: 'len 1/17/2017 17:40:14'!
 writeIntersectionsWith: aRay into: aCollection 
 	"A Plane is defined as:
@@ -107,6 +90,26 @@ writeIntersectionsWith: aRay into: aCollection
 							ray: aRay
 							distance: t)]! !
 
+!Plane methodsFor: 'accessing'!
+normal
+	^normal! !
+
+!Plane methodsFor: 'accessing'!
+normal: aVector
+	normal _ aVector! !
+
+!Plane methodsFor: 'accessing'!
+offset
+	^offset! !
+
+!Plane methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:10'!
+offset: aNumber
+	offset _ aNumber asFloat! !
+
+!Plane methodsFor: 'tracing'!
+normalAt: aPoint
+	^normal! !
+
 !Plane class methodsFor: 'instance creation'!
 new
 	^super new initialize! !
@@ -125,10 +128,6 @@ location
 location: aVector
 	location _ aVector! !
 
-!Sphere methodsFor: 'tracing' stamp: 'len 1/18/2017 21:35:20'!
-normalAt: aPoint
-	^self location unitVectorTowards: aPoint! !
-
 !Sphere methodsFor: 'accessing'!
 radius
 	^radius! !
@@ -136,6 +135,10 @@ radius
 !Sphere methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:17'!
 radius: aNumber
 	radius _ aNumber asFloat! !
+
+!Sphere methodsFor: 'tracing' stamp: 'len 1/18/2017 21:35:20'!
+normalAt: aPoint
+	^self location unitVectorTowards: aPoint! !
 
 !Sphere methodsFor: 'tracing'!
 radiusSquared
@@ -209,17 +212,25 @@ center: aVector
 color1
 	^color1! !
 
-!CheckerBoardPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 18:34:42'!
+!CheckerBoardPigment methodsFor: 'accessing' stamp: 'len 5/13/2019 01:09:26'!
 color1: aColor
-	color1 _ aColor as: Float32Color3! !
+	color1 _ aColor! !
 
 !CheckerBoardPigment methodsFor: 'accessing'!
 color2
 	^color2! !
 
-!CheckerBoardPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 18:35:22'!
+!CheckerBoardPigment methodsFor: 'accessing' stamp: 'len 5/13/2019 01:09:31'!
 color2: aColor
-	color2 _ aColor as: Float32Color3! !
+	color2 _ aColor! !
+
+!CheckerBoardPigment methodsFor: 'accessing'!
+squareSize
+	^squareSize! !
+
+!CheckerBoardPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 17:41:27'!
+squareSize: aNumber
+	squareSize _ aNumber asFloat! !
 
 !CheckerBoardPigment methodsFor: 'rendering'!
 colorAt: anIntersection
@@ -232,15 +243,7 @@ colorAt: anIntersection
 		ifTrue: [color1]
 		ifFalse: [color2]! !
 
-!CheckerBoardPigment methodsFor: 'accessing'!
-squareSize
-	^squareSize! !
-
-!CheckerBoardPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 17:41:27'!
-squareSize: aNumber
-	squareSize _ aNumber asFloat! !
-
-!RayTraceExamples class methodsFor: 'examples' stamp: 'len 1/17/2017 19:23:11'!
+!RayTraceExamples class methodsFor: 'examples' stamp: 'len 5/13/2019 01:11:20'!
 example1
 	"MessageTally spyOn: [RayTraceExamples example1]"
 
@@ -275,7 +278,7 @@ example1
 							texture: (TextureWithFinish new
 										pigment: (WoodPigment new
 													color1: Color lightBrown darker;
-													color2: (Color lightBrown darker as: Float32Color3) * 1.5;
+													color2: Color lightBrown darker * 1.5;
 													center: 0 @ 1 @ 0;
 													ringDistance: 0.1);
 										finish: (PhongLightingModelFinish new
@@ -334,7 +337,7 @@ example2
 	image _ camera renderScene: scene.
 	ImageMorph new image: image; openInWorld! !
 
-!RayTraceExamples class methodsFor: 'examples' stamp: 'len 1/19/2017 07:49:43'!
+!RayTraceExamples class methodsFor: 'examples' stamp: 'len 5/13/2019 01:11:45'!
 example3
 	| image camera scene |
 	camera _ Camera new
@@ -367,7 +370,7 @@ example3
 							texture: (TextureWithFinish new
 										pigment: (WoodPigment new
 													color1: Color lightBrown darker;
-													color2: (Color lightBrown darker as: Float32Color3) * 1.5;
+													color2: Color lightBrown darker * 1.5;
 													center: 0 @ 1 @ 0;
 													ringDistance: 0.1);
 										finish: (PhongLightingModelFinish new
@@ -399,31 +402,17 @@ center: aVector
 color1
 	^color1! !
 
-!WoodPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 18:34:59'!
+!WoodPigment methodsFor: 'accessing' stamp: 'len 5/13/2019 01:12:11'!
 color1: aColor
-	color1 _ aColor as: Float32Color3! !
+	color1 _ aColor! !
 
 !WoodPigment methodsFor: 'accessing'!
 color2
 	^color2! !
 
-!WoodPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 18:35:28'!
+!WoodPigment methodsFor: 'accessing' stamp: 'len 5/13/2019 01:12:15'!
 color2: aColor
-	color2 _ aColor as: Float32Color3! !
-
-!WoodPigment methodsFor: 'initializing' stamp: 'len 1/17/2017 17:40:51'!
-colorAt: anIntersection
-	^(((anIntersection intersectionPoint - center) * (1.0 @ 0.0 @ 1.0)) length / ringDistance) fractionPart > 0.5
-		ifTrue: [color1]
-		ifFalse: [color2]! !
-
-!WoodPigment methodsFor: 'initializing' stamp: 'len 1/17/2017 18:28:26'!
-initialize
-	self
-		color1: Float32Color3 black;
-		color2: Float32Color3 white;
-		center: 0 @ 0 @ 0;
-		ringDistance: 1! !
+	color2 _ aColor! !
 
 !WoodPigment methodsFor: 'accessing'!
 ringDistance
@@ -432,6 +421,20 @@ ringDistance
 !WoodPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:35'!
 ringDistance: aNumber
 	ringDistance _ aNumber asFloat! !
+
+!WoodPigment methodsFor: 'initializing' stamp: 'len 1/17/2017 17:40:51'!
+colorAt: anIntersection
+	^(((anIntersection intersectionPoint - center) * (1.0 @ 0.0 @ 1.0)) length / ringDistance) fractionPart > 0.5
+		ifTrue: [color1]
+		ifFalse: [color2]! !
+
+!WoodPigment methodsFor: 'initializing' stamp: 'len 5/13/2019 01:12:25'!
+initialize
+	self
+		color1: Color black;
+		color2: Color white;
+		center: 0 @ 0 @ 0;
+		ringDistance: 1! !
 
 !WoodPigment class methodsFor: 'instance creating'!
 new

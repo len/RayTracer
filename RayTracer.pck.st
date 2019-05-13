@@ -1,7 +1,10 @@
-'From Cuis 5.0 of 7 November 2016 [latest update: #2974] on 22 January 2017 at 10:13:17 am'!
+'From Cuis 5.0 of 7 November 2016 [latest update: #3741] on 13 May 2019 at 1:12:41 am'!
 'Description Please enter a description for this package'!
-!provides: 'RayTracer' 1 2!
+!provides: 'RayTracer' 1 4!
 !requires: 'Math 3D' 1 21 nil!
+SystemOrganization addCategory: #RayTracer!
+
+
 !classDefinition: #Camera category: #RayTracer!
 Object subclass: #Camera
 	instanceVariableNames: 'location direction up right image imagePoker'
@@ -123,38 +126,6 @@ TextureWithFinish class
 	instanceVariableNames: ''!
 
 
-!Number methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:00:54'!
-x
-	^ Float32Vector3 x: self y: 0 z: 0! !
-
-!Number methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:01:00'!
-y
-	^ Float32Vector3 x: 0 y: self z: 0! !
-
-!Number methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:01:04'!
-z
-	^ Float32Vector3 x: 0 y: 0 z: self! !
-
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:38:12'!
-halfwayVectorTo: aVector 
-	^(self + aVector) /= 2.0! !
-
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:37:28'!
-reflectRay: aVector 
-	^self * ((self dot: aVector) * -2.0) -= aVector! !
-
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:32:27'!
-unitVector
-	^self copy normalize! !
-
-!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:30:13'!
-unitVectorTowards: aVector 
-	^(aVector - self) normalize! !
-
-!Point methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:01:56'!
-@ aNumber
-	^Float32Vector3 x: x y: y z: aNumber! !
-
 !Camera methodsFor: 'rendering' stamp: 'len 1/18/2017 21:22:53'!
 allPixelsDo: aBlock
 	0 to: self image extent y - 1
@@ -192,6 +163,30 @@ image
 image: anObject
 	image _ anObject! !
 
+!Camera methodsFor: 'accessing'!
+location
+	^location! !
+
+!Camera methodsFor: 'accessing'!
+location: aVector
+	location _ aVector! !
+
+!Camera methodsFor: 'accessing'!
+right
+	^right! !
+
+!Camera methodsFor: 'accessing'!
+right: aVector
+	right _ aVector! !
+
+!Camera methodsFor: 'accessing'!
+up
+	^up! !
+
+!Camera methodsFor: 'accessing'!
+up: aVector
+	up _ aVector! !
+
 !Camera methodsFor: 'dialect-specific' stamp: 'len 1/18/2017 21:23:12'!
 imageAt: aPoint putColor: color
 	imagePoker
@@ -217,15 +212,7 @@ initialize
 	up _ 1 y.
 	right _ 1 x.! !
 
-!Camera methodsFor: 'accessing'!
-location
-	^location! !
-
-!Camera methodsFor: 'accessing'!
-location: aVector
-	location _ aVector! !
-
-!Camera methodsFor: 'initializing' stamp: 'len 1/18/2017 21:23:42'!
+!Camera methodsFor: 'initializing' stamp: 'len 5/13/2019 00:55:11'!
 renderScene: aScene 
 	self allPixelsDo: 
 			[:x :y |
@@ -233,33 +220,17 @@ renderScene: aScene
 			point _ x @ y.
 			ray _ self createRayForPixel: point.
 			color _ aScene trace: ray.
-			self imageAt: point putColor: color].
+			self imageAt: point putColor: (color as: Color)].
 	^self image! !
-
-!Camera methodsFor: 'accessing'!
-right
-	^right! !
-
-!Camera methodsFor: 'accessing'!
-right: aVector
-	right _ aVector! !
-
-!Camera methodsFor: 'accessing'!
-up
-	^up! !
-
-!Camera methodsFor: 'accessing'!
-up: aVector
-	up _ aVector! !
 
 !CompoundFinish methodsFor: 'adding'!
 addFinish: aFinish
 	finishes add: aFinish! !
 
-!CompoundFinish methodsFor: 'rendering' stamp: 'len 1/18/2017 21:43:53'!
+!CompoundFinish methodsFor: 'rendering' stamp: 'len 5/13/2019 01:09:48'!
 colorAt: anIntersection
 	| color |
-	color _ Float32Color3 new.
+	color _ Color new.
 	finishes do: [:each| color += (each colorAt: anIntersection)].
 	^color! !
 
@@ -271,9 +242,9 @@ initialize
 color
 	^color! !
 
-!FlatColorPigment methodsFor: 'accessing' stamp: 'len 1/17/2017 18:35:49'!
+!FlatColorPigment methodsFor: 'accessing' stamp: 'len 5/13/2019 01:09:54'!
 color: aColor
-	color _ aColor as: Float32Color3! !
+	color _ aColor! !
 
 !FlatColorPigment methodsFor: 'rendering'!
 colorAt: anIntersection
@@ -290,21 +261,9 @@ colorOfReflectedRay
 				origin: self intersectionPoint;
 				direction: self reflectedDirection)! !
 
-!Intersection methodsFor: 'accessing'!
-distance
-	^distance! !
-
-!Intersection methodsFor: 'accessing'!
-distance: aNumber
-	distance _ aNumber! !
-
 !Intersection methodsFor: 'rendering'!
 eyeRayDirection
 	^self ray direction! !
-
-!Intersection methodsFor: 'accessing' stamp: 'len 1/21/2017 19:56:07'!
-intersectionPoint
-	^intersectionPoint ifNil: [intersectionPoint _ ray pointAtDistance: distance]! !
 
 !Intersection methodsFor: 'rendering' stamp: 'len 1/21/2017 19:44:17'!
 normal
@@ -318,6 +277,22 @@ normalComponentForLightSource: lightSource
 	| lightSourceVector |
 	lightSourceVector _ self intersectionPoint unitVectorTowards: lightSource location.
 	^ self normal dot: lightSourceVector! !
+
+!Intersection methodsFor: 'rendering'!
+reflectedDirection
+	^self normal reflectRay: self eyeRayDirection! !
+
+!Intersection methodsFor: 'accessing'!
+distance
+	^distance! !
+
+!Intersection methodsFor: 'accessing'!
+distance: aNumber
+	distance _ aNumber! !
+
+!Intersection methodsFor: 'accessing' stamp: 'len 1/21/2017 19:56:07'!
+intersectionPoint
+	^intersectionPoint ifNil: [intersectionPoint _ ray pointAtDistance: distance]! !
 
 !Intersection methodsFor: 'accessing'!
 object
@@ -339,10 +314,6 @@ ray
 ray: aRay
 	ray _ aRay! !
 
-!Intersection methodsFor: 'rendering'!
-reflectedDirection
-	^self normal reflectRay: self eyeRayDirection! !
-
 !Intersection methodsFor: 'accessing'!
 scene
 	^scene! !
@@ -363,14 +334,22 @@ for: anObject ray: aRay distance: aNumber
 color
 	^color! !
 
-!LightSource methodsFor: 'accessing' stamp: 'len 1/17/2017 18:36:00'!
+!LightSource methodsFor: 'accessing' stamp: 'len 5/13/2019 01:10:11'!
 color: aColor
-	color _ aColor as: Float32Color3! !
+	color _ aColor! !
 
-!LightSource methodsFor: 'initializing' stamp: 'len 1/17/2017 18:27:07'!
+!LightSource methodsFor: 'accessing'!
+location
+	^location! !
+
+!LightSource methodsFor: 'accessing'!
+location: aVector
+	location _ aVector! !
+
+!LightSource methodsFor: 'initializing' stamp: 'len 5/13/2019 01:10:21'!
 initialize
 	self
-		color: Float32Color3 white;
+		color: Color white;
 		location: 0@10@-10! !
 
 !LightSource methodsFor: 'rendering' stamp: 'len 1/18/2017 21:34:21'!
@@ -385,14 +364,6 @@ isIntersectionVisible: anIntersection
 		do: [:intersection | intersection distance < lightSourceDistance ifTrue: [^false]].
 	^true! !
 
-!LightSource methodsFor: 'accessing'!
-location
-	^location! !
-
-!LightSource methodsFor: 'accessing'!
-location: aVector
-	location _ aVector! !
-
 !PhongLightingModelFinish methodsFor: 'accessing'!
 ambient
 	^ambient! !
@@ -401,9 +372,57 @@ ambient
 ambient: anObject
 	ambient _ anObject asFloat! !
 
+!PhongLightingModelFinish methodsFor: 'accessing'!
+diffuse
+	^diffuse! !
+
+!PhongLightingModelFinish methodsFor: 'accessing' stamp: 'len 1/17/2017 17:41:58'!
+diffuse: anObject
+	diffuse _ anObject asFloat! !
+
+!PhongLightingModelFinish methodsFor: 'accessing'!
+specular
+	^specular! !
+
+!PhongLightingModelFinish methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:02'!
+specular: anObject
+	specular _ anObject asFloat! !
+
+!PhongLightingModelFinish methodsFor: 'accessing'!
+specularPower
+	^specularPower! !
+
+!PhongLightingModelFinish methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:06'!
+specularPower: anObject
+	specularPower _ anObject asFloat! !
+
 !PhongLightingModelFinish methodsFor: 'rendering'!
 ambientColorAt: anIntersection 
 	^anIntersection pigmentColor * self ambient! !
+
+!PhongLightingModelFinish methodsFor: 'rendering' stamp: 'len 1/18/2017 21:16:15'!
+diffuseColorAt: anIntersection fromLightSource: lightSource
+	| dot |
+	dot _ anIntersection normalComponentForLightSource: lightSource.
+	^anIntersection pigmentColor * lightSource color *= (dot * self diffuse)! !
+
+!PhongLightingModelFinish methodsFor: 'rendering' stamp: 'len 5/13/2019 01:10:28'!
+specularColorAt: anIntersection lightSource: lightSource
+	| halfLength cosAngleOfIncidence halfVector intensity lightSourceVector |
+	lightSourceVector _ anIntersection intersectionPoint 
+								unitVectorTowards: lightSource location.
+	halfVector _ anIntersection eyeRayDirection negated 
+				halfwayVectorTo: lightSourceVector.
+	halfLength _ halfVector length.
+	halfLength > 0.0 
+		ifTrue: 
+			[cosAngleOfIncidence _ (halfVector dot: anIntersection normal) / halfLength.
+			cosAngleOfIncidence > 0.0 
+				ifTrue: 
+					[intensity _ (cosAngleOfIncidence raisedTo: self specularPower) 
+								* self specular.
+					^lightSource color * intensity]].
+	^Color black! !
 
 !PhongLightingModelFinish methodsFor: 'initializing' stamp: 'len 1/19/2017 20:38:12'!
 colorAt: anIntersection
@@ -421,20 +440,6 @@ colorAt: anIntersection
 										+= (self specularColorAt: anIntersection lightSource: lightSource)]]].
 	^color! !
 
-!PhongLightingModelFinish methodsFor: 'accessing'!
-diffuse
-	^diffuse! !
-
-!PhongLightingModelFinish methodsFor: 'accessing' stamp: 'len 1/17/2017 17:41:58'!
-diffuse: anObject
-	diffuse _ anObject asFloat! !
-
-!PhongLightingModelFinish methodsFor: 'rendering' stamp: 'len 1/18/2017 21:16:15'!
-diffuseColorAt: anIntersection fromLightSource: lightSource
-	| dot |
-	dot _ anIntersection normalComponentForLightSource: lightSource.
-	^anIntersection pigmentColor * lightSource color *= (dot * self diffuse)! !
-
 !PhongLightingModelFinish methodsFor: 'initializing' stamp: 'len 1/17/2017 17:39:59'!
 initialize
 	self
@@ -443,40 +448,6 @@ initialize
 		specular: 0.0;
 		specularPower: 20.0! !
 
-!PhongLightingModelFinish methodsFor: 'accessing'!
-specular
-	^specular! !
-
-!PhongLightingModelFinish methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:02'!
-specular: anObject
-	specular _ anObject asFloat! !
-
-!PhongLightingModelFinish methodsFor: 'rendering' stamp: 'len 1/17/2017 18:27:57'!
-specularColorAt: anIntersection lightSource: lightSource
-	| halfLength cosAngleOfIncidence halfVector intensity lightSourceVector |
-	lightSourceVector _ anIntersection intersectionPoint 
-								unitVectorTowards: lightSource location.
-	halfVector _ anIntersection eyeRayDirection negated 
-				halfwayVectorTo: lightSourceVector.
-	halfLength _ halfVector length.
-	halfLength > 0.0 
-		ifTrue: 
-			[cosAngleOfIncidence _ (halfVector dot: anIntersection normal) / halfLength.
-			cosAngleOfIncidence > 0.0 
-				ifTrue: 
-					[intensity _ (cosAngleOfIncidence raisedTo: self specularPower) 
-								* self specular.
-					^lightSource color * intensity]].
-	^Float32Color3 black! !
-
-!PhongLightingModelFinish methodsFor: 'accessing'!
-specularPower
-	^specularPower! !
-
-!PhongLightingModelFinish methodsFor: 'accessing' stamp: 'len 1/17/2017 17:42:06'!
-specularPower: anObject
-	specularPower _ anObject asFloat! !
-
 !Ray methodsFor: 'accessing'!
 direction
 	^direction! !
@@ -484,10 +455,6 @@ direction
 !Ray methodsFor: 'accessing'!
 direction: anObject
 	direction _ anObject! !
-
-!Ray methodsFor: 'tracing' stamp: 'len 1/18/2017 21:18:06'!
-directionLengthSquared
-	^directionLengthSquared ifNil: [directionLengthSquared _ direction dot: direction]! !
 
 !Ray methodsFor: 'accessing'!
 origin
@@ -501,18 +468,26 @@ origin: anObject
 pointAtDistance: d 
 	^self direction * d + self origin! !
 
+!Ray methodsFor: 'tracing' stamp: 'len 1/18/2017 21:18:06'!
+directionLengthSquared
+	^directionLengthSquared ifNil: [directionLengthSquared _ direction dot: direction]! !
+
 !RayTraceObject methodsFor: 'tracing'!
 colorAt: anIntersection
 	^self texture colorAt: anIntersection! !
+
+!RayTraceObject methodsFor: 'tracing'!
+normalAt: aPoint
+	self subclassResponsibility! !
+
+!RayTraceObject methodsFor: 'tracing'!
+writeIntersectionsWith: aRay into: aCollection
+	^self! !
 
 !RayTraceObject methodsFor: 'initializing'!
 initialize
 	self
 		texture: Texture new! !
-
-!RayTraceObject methodsFor: 'tracing'!
-normalAt: aPoint
-	self subclassResponsibility! !
 
 !RayTraceObject methodsFor: 'accessing'!
 texture
@@ -521,10 +496,6 @@ texture
 !RayTraceObject methodsFor: 'accessing'!
 texture: aRayTraceTexture
 	texture _ aRayTraceTexture! !
-
-!RayTraceObject methodsFor: 'tracing'!
-writeIntersectionsWith: aRay into: aCollection
-	^self! !
 
 !ReflectionFinish methodsFor: 'rendering'!
 colorAt: anIntersection 
@@ -560,12 +531,6 @@ closestIntersectionWith: aRay
 	intersections _ self allIntersectionsWith: aRay.
 	^intersections isEmpty ifTrue: [nil] ifFalse: [intersections first]! !
 
-!Scene methodsFor: 'initializing'!
-initialize
-	self
-		objects: OrderedCollection new;
-		lightSources: OrderedCollection new! !
-
 !Scene methodsFor: 'tracing'!
 intersectionsWith: aRay do: aBlock
 	| intersections |
@@ -574,6 +539,19 @@ intersectionsWith: aRay do: aBlock
 		do: [:each | each writeIntersectionsWith: aRay into: intersections.
 			intersections do: aBlock.
 			intersections _ OrderedCollection new].! !
+
+!Scene methodsFor: 'tracing' stamp: 'len 5/13/2019 01:12:00'!
+trace: aRay
+	| intersection |
+	intersection _ self closestIntersectionWith: aRay.
+	intersection isNil ifTrue: [^Color black].
+	^intersection colorInScene: self! !
+
+!Scene methodsFor: 'initializing'!
+initialize
+	self
+		objects: OrderedCollection new;
+		lightSources: OrderedCollection new! !
 
 !Scene methodsFor: 'accessing'!
 lightSources
@@ -591,16 +569,9 @@ objects
 objects: aCollection
 	objects _ aCollection! !
 
-!Scene methodsFor: 'tracing' stamp: 'len 1/17/2017 18:28:07'!
-trace: aRay
-	| intersection |
-	intersection _ self closestIntersectionWith: aRay.
-	intersection isNil ifTrue: [^Float32Color3 black].
-	^intersection colorInScene: self! !
-
-!Texture methodsFor: 'rendering' stamp: 'len 1/17/2017 18:28:13'!
+!Texture methodsFor: 'rendering' stamp: 'len 5/13/2019 01:12:06'!
 colorAt: anIntersection
-	^Float32Color3 white! !
+	^Color white! !
 
 !TextureWithFinish methodsFor: 'rendering'!
 colorAt: anIntersection
@@ -614,12 +585,6 @@ finish
 finish: anObject
 	finish _ anObject! !
 
-!TextureWithFinish methodsFor: 'initializing'!
-initialize
-	self
-		pigment: FlatColorPigment new;
-		finish: PhongLightingModelFinish new! !
-
 !TextureWithFinish methodsFor: 'accessing'!
 pigment
 	^pigment! !
@@ -627,3 +592,41 @@ pigment
 !TextureWithFinish methodsFor: 'accessing'!
 pigment: anObject
 	pigment _ anObject! !
+
+!TextureWithFinish methodsFor: 'initializing'!
+initialize
+	self
+		pigment: FlatColorPigment new;
+		finish: PhongLightingModelFinish new! !
+
+!Number methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:00:54'!
+x
+	^ Float32Vector3 x: self y: 0 z: 0! !
+
+!Number methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:01:00'!
+y
+	^ Float32Vector3 x: 0 y: self z: 0! !
+
+!Number methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:01:04'!
+z
+	^ Float32Vector3 x: 0 y: 0 z: self! !
+
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:38:12'!
+halfwayVectorTo: aVector 
+	^(self + aVector) /= 2.0! !
+
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:37:28'!
+reflectRay: aVector 
+	^self * ((self dot: aVector) * -2.0) -= aVector! !
+
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:32:27'!
+unitVector
+	^self copy normalize! !
+
+!Float32Vector3 methodsFor: '*RayTracer' stamp: 'len 1/18/2017 21:30:13'!
+unitVectorTowards: aVector 
+	^(aVector - self) normalize! !
+
+!Point methodsFor: '*RayTracer' stamp: 'len 1/17/2017 18:01:56'!
+@ aNumber
+	^Float32Vector3 x: x y: y z: aNumber! !
